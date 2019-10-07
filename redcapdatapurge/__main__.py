@@ -3,13 +3,24 @@ from .redcapdb import RedCapDB
 from .export import print_rels, print_tables_with_project_id, serialize_rels, print_primary_keys, print_full_summary_to_file
 from . import utils
 
-def main():
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-    # TODO: Get values from config file / command-line instead
-    db_url = 'mysql://redcap:<PASSWORD>@127.0.0.1/redcap'
-    summary_file = ''
-    purge_queries_file = ''
-    related_item_ids_file = ''
+def main():
+    required_env_vars = ["DB_URL", "SUMMARY_OUTPUT_FILE",
+                         "PURGE_QUERIES_OUTPUT_FILE", "RELATED_ITEM_IDS_OUTPUT_FILE"]
+    for var in required_env_vars:
+        if not os.getenv(var):
+            print(f"Required environment variable '{var}' is missing.")
+            exit(1)
+
+    # Get values from ,env config file
+    db_url = os.getenv("DB_URL")
+    summary_file = os.getenv("SUMMARY_OUTPUT_FILE")
+    purge_queries_file = os.getenv("PURGE_QUERIES_OUTPUT_FILE")
+    related_item_ids_file = os.getenv("RELATED_ITEM_IDS_OUTPUT_FILE")
+
 
     db = RedCapDB(db_url)
     db.calculate_total_rows_count()

@@ -2,5 +2,6 @@ outputs/
 logs/
 __pycache__
 venv/
+.env
 
 .idea
