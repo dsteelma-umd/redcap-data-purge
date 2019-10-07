@@ -250,6 +250,6 @@ class RedCapDB():
             for value in self.related_item_ids[table]:
                 q_value = value if isinstance(value, int) else f"'{value}'"
                 values = f'{values}, {q_value}' if values else q_value
-            query = f'DELETE FROM {table} WHERE {field} NOT IN ({values})'
+            query = f'DELETE FROM {table} WHERE {field} NOT IN ({values});'
             self.purge_queries.append(query)
         return self.purge_queries
