@@ -61,5 +61,9 @@ The MySQL database from the production server can be copied back to the dev
 server. See the ["Clone RedCap database"][clone_redcap_db] page in Confluence
 for more information.
 
+## License
 
+See the [LICENSE](LICENSE.md) file for license rights and limitations (Apache 2.0).
+
+----
 [clone_redcap_db]: https://confluence.umd.edu/display/ULDW/Clone+REDCap+database
