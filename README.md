@@ -61,6 +61,34 @@ The MySQL database from the production server can be copied back to the dev
 server. See the ["Clone RedCap database"][clone_redcap_db] page in Confluence
 for more information.
 
+### Connecting to the development database server from a workstation
+
+1) Create an SSH tunnel from your local machine to the "redcapdbdev" server:
+
+```
+> ssh <USERNAME>@redcapdevdb.lib.umd.edu -L 3306:127.0.0.1:3306 -N
+``` 
+
+replacing \<USERNAME> with your username. For example, if your username is
+"jsmith":
+
+```
+> ssh jsmith@redcapdevdb.lib.umd.edu -L 3306:127.0.0.1:3306 -N
+``` 
+
+2) In the ".env" file, the "DB_URL" can then be set at:
+
+```buildoutcfg
+DB_URL=mysql://redcap:<DB_PASSWORD>@127.0.0.1:3306/redcap
+```
+
+where \<DB_URL> is the database password. The database password can be found
+in the "Identities" document on the "SSDR" Google Team Drive.
+
+
+
+
+
 ## License
 
 See the [LICENSE](LICENSE.md) file for license rights and limitations (Apache 2.0).
