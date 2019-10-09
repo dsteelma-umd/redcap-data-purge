@@ -78,7 +78,7 @@ replacing \<USERNAME> with your username. For example, if your username is
 
 2) In the ".env" file, the "DB_URL" can then be set at:
 
-```buildoutcfg
+```
 DB_URL=mysql://redcap:<DB_PASSWORD>@127.0.0.1:3306/redcap
 ```
 
