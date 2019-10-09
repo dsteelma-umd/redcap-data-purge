@@ -6,18 +6,10 @@
 #    mysql://redcap:<PASSWORD>@127.0.0.1/redcap
 DB_URL=
 
-# The fully-qualified path to the summary output file, i.e.
-#    /tmp/summary_output.txt
-SUMMARY_OUTPUT_FILE=
+# The fully-qualified path to the cleanup output file, i.e.
+#    /tmp/cleanup.sql
+CLEANUP_OUTPUT_FILE=
 
 # The fully-qualified path to the purge queries output file, i.e.
 #    /tmp/purge_queries_output.txt
 PURGE_QUERIES_OUTPUT_FILE=
-
-# The fully-qualified path to the related items ids output file, i.e.:
-#    /tmp/related_item_ids_output.txt
-RELATED_ITEM_IDS_OUTPUT_FILE=
-
-# The fully-qualified path to the cleanup output file, i.e.
-#    /tmp/cleanup.sql
-CLEANUP_OUTPUT_FILE=
