@@ -511,7 +511,7 @@ a "tar" archive of all the files in the "/tmp/file_list.txt" file:
 
 ```
 > cd /apps/redcap/edocs
-> tar -cvf allfiles.tar -T file_list.txt
+> tar -cvf allfiles.tar -T /tmp/file_list.txt
 ```
 
 **Note:** There is no guarantee that all the files will actually be present,
