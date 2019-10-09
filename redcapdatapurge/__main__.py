@@ -5,15 +5,11 @@ import sys
 load_dotenv()
 
 
-def calculate_total_rows_count(db):
-    total_rows_count = {}
-    for table in db.tables:
-        table_class = db.load_table(table)
-        total_rows_count[table] = table_class.count()
-    return total_rows_count
-
-
 def cleanup_sql_for_delete_orphaned_projects_ids():
+    """
+    :return: a list of SQL statements for cleaning up records that have
+    "orphaned" project ids.
+    """
     sql_statements = []
     orphaned_project_ids = [19, 80, 81, 91, 103, 115, 116, 128, 129, 136, 144,
                             148, 152, 154, 156, 157, 158, 160, 172, 178, 183,
@@ -38,6 +34,10 @@ def cleanup_sql_for_delete_orphaned_projects_ids():
 
 
 def cleanup_sql_for_delete_null_projects_ids():
+    """
+    :return: a list of SQL statements for cleaning up records that have
+    null project ids.
+    """
     sql_statements = []
     tables_with_null_project_ids = [
         'redcap_external_module_settings'
@@ -51,6 +51,11 @@ def cleanup_sql_for_delete_null_projects_ids():
 
 
 def cleanup_sql_for_delete_null_ui_ids():
+    """
+    :return: a list of SQL statements for cleaning up records that have
+    null user ids.
+    """
+
     sql_statements = []
     tables_with_null_ui_ids = [
         {'table': 'redcap_messages', 'field': 'author_user_id'},
@@ -68,6 +73,10 @@ def cleanup_sql_for_delete_null_ui_ids():
 
 
 def cleanup_sql_for_other_orphans():
+    """
+    :return: a list of SQL statements for cleaning up records that have
+    been orphaned
+    """
     sql_statements = []
 
     tables_with_orphans = [
@@ -179,6 +188,19 @@ def cleanup_sql_for_other_orphans():
 
 
 def purge_sql_for_redcap_projects(project_ids_to_keep):
+    """
+    Returns a list of SQL statements that remove all project ids from the
+    "redcap_projects" table, except those in the given "project_ids_to_keep"
+    list.
+
+    Note: Due to the "CASCADE DELETE" behavior of SQL, these statements will
+    result in the related records in all child tables also being removed.
+
+    :param project_ids_to_keep: a list of the project ids to keep
+    :return: a list of SQL statements that remove all project ids from the
+    "redcap_projects" table, except those in the given "project_ids_to_keep"
+    list.
+    """
     sql_statements = []
 
     tables = [
@@ -195,6 +217,19 @@ def purge_sql_for_redcap_projects(project_ids_to_keep):
 
 
 def purge_sql_for_redcap_user_information(user_names_to_keep):
+    """
+    Returns a list of SQL statements that remove all user names from the
+    "redcap_user_information" table, except those in the given
+    "user_names_to_keep" list.
+
+    Note: Due to the "CASCADE DELETE" behavior of SQL, these statements will
+    result in the related records in all child tables also being removed.
+
+    :param user_names_to_keep: a list of the user names to keep
+    :return: a list of SQL statements that remove all user names from the
+    "redcap_user_information" table, except those in the given
+    "user_names_to_keep" list.
+    """
     sql_statements = []
 
     tables = [
@@ -211,6 +246,14 @@ def purge_sql_for_redcap_user_information(user_names_to_keep):
 
 
 def purge_sql_unattached_tables_with_project_id(project_ids_to_keep):
+    """
+    Returns a list of SQL statements that remove all project ids from the
+    "unattached" (non-child) tables that have a "project_id" field.
+
+    :param project_ids_to_keep: a list of the project ids to keep
+    :return: a list of SQL statements that remove all project ids from the
+    "unattached" (non-child) tables that have a "project_id" field.
+    """
     sql_statements = []
 
     tables = [
@@ -229,6 +272,14 @@ def purge_sql_unattached_tables_with_project_id(project_ids_to_keep):
 
 
 def purge_sql_unattached_tables_with_user_name(user_names_to_keep):
+    """
+    Returns a list of SQL statements that remove all user names from the
+    "unattached" (non-child) tables that have a "username" field.
+
+    :param user_names_to_keep: a list of the user names to keep
+    :return: a list of SQL statements that remove all user names from the
+    "unattached" (non-child) tables that have a "username" field.
+    """
     sql_statements = []
 
     tables = [
@@ -248,7 +299,7 @@ def purge_sql_unattached_tables_with_user_name(user_names_to_keep):
 
 def redcap_admin_purge_sql():
     """
-    Returns SQL statements remove all entries in tables that hold
+    Returns SQL statements that remove all entries in tables that hold
     RedCap application configuration/usage history information that
     is not needed in some migrations.
     """
@@ -323,7 +374,14 @@ def main(project_ids_to_keep, user_names_to_keep):
     with open(redcap_admin_purge_queries_file, 'w') as fp:
         fp.write('\n'.join(redcap_admin_purge_sql_statements))
 
+
 def file_to_list(filename):
+    """
+    Reads the given file line-by-line into an array.
+    Empty lines are skipped, and whitespace is trimmed.
+    :param filename: the name of the file to return as a list
+    :return: a list containing the non-empty lines in the file.
+    """
     lines = []
     with open(filename, 'r') as fp:
         line = fp.readline()
