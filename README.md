@@ -95,7 +95,8 @@ purge, these tables can be divided into the following categories:
 * Unattached tables that contain a "project_id" field
 * Unattached tables that contain a "username" field
 * Tables with no records
-* Tables used for RedCap application configuration
+* Tables used for RedCap application configuration that should be kept
+* Tables used for RedCap application configuration that should be cleared
 
 A "child" table is a table that contains a foreign key with a "CASCADE DELETE"
 relationship to the parent table. This means that a deletion of a row in
@@ -247,39 +248,103 @@ The following tables have no records, so do not need to be purged:
 * redcap_pub_mesh_terms
 * redcap_user_whitelist
 
-### Tables used for RedCap application configuration
+### Tables used for RedCap application configuration that should be kept
 
 The following tables are used by RedCap for application configuration. They
-do not contain a "project_id" or "username" field:
+do not contain a "project_id" or "username" field, but do contain
+configuration or other information related to the running of the RedCap
+application:
 
 * redcap_auth_questions
 * redcap_config
 * redcap_crons
-* redcap_crons_history
-* redcap_dashboard_ip_location_cache
 * redcap_external_modules
 * redcap_external_modules_downloads
-* redcap_history_size
 * redcap_history_version
 * redcap_instrument_zip_origins
+* redcap_messages_threads
+* redcap_pub_sources
+* redcap_validation_types
+
+### Tables used for RedCap application configuration that should be cleared
+The following tables are used by RedCap for application configuration. They
+do not contain a "project_id" or "username" field, and typically contain
+usage history information that it is not necessary to maintain when
+migrating a "clean" database copy:
+
+* redcap_crons_history
+* redcap_dashboard_ip_location_cache
+* redcap_history_size
 * redcap_ip_cache
 * redcap_log_view
 * redcap_log_view_requests
-* redcap_messages_threads
 * redcap_page_hits
-* redcap_pub_sources
 * redcap_sessions
 * redcap_surveys_emails_send_rate
-* redcap_validation_types
+
 
 ## Usage
 
 To generate the files to use in purging the database:
 
 ```
-> python -m redcapdatapurge
+> python -m redcapdatapurge <PROJECT_IDS_TO_KEEP_FILE> <USER_NAMES_TO_KEEP_FILE>
 ```
 
+where \<PROJECT_IDS_TO_KEEP_FILE> is a file containing the project ids to keep
+(one per line), and \<USER_NAMES_TO_KEEP_FILE> is a file containing the user
+names to keep (one per line). See `example_project_ids_to_keep.txt` and
+`example_user_names_to_keep.txt` as examples.
+
+**Note:** The "USER_NAMES_TO_KEEP_FILE" should contain an a "site-admin" entry,
+as that appears to be required by the RedCap application.
+
+The following files are produced:
+
+* Cleanup (CLEANUP_OUTPUT_FILE)
+* Purge Queries (PURGE_QUERIES_OUTPUT_FILE)
+* RedCap Admin Purge Queries (REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE)
+
+### Cleanup (CLEANUP_OUTPUT_FILE)
+
+While writing this application, it was observed that some tables associated
+with project_ids or usernames still contained records, even after all the
+entries were deleted from the "redcap_projects" and "redcap_user_information"
+tables. These "orphaned" records indicate that there was a referential integrity
+issue at some point in the RedCap application's life, in which a project or
+user was deleted and all the related records were not properly cleaned up.
+
+The values used in the SQL statements in this file were discovered by deleting
+all the records from the "redcap_projects" and "redcap_user_information", and
+then seeing which records were left in the tables that had foreign keys with
+"CASCADE DELETE" (i.e., the tables in the
+'"redcap_projects" table and its child tables' and
+'"redcap_user_information" table and its child tables' sections above).
+
+This SQL file SHOULD be run when creating a "clean" database for transferring
+a set of records. It is not necessary to run the script in other circumstances,
+but seems advisable as a cleanup step.
+
+### Purge Queries (PURGE_QUERIES_OUTPUT_FILE)
+
+This SQL file contains the queries to delete project and user-related data
+from all tables, preserving only those entries for the provided project ids
+and usernames.
+
+### RedCap Admin Purge Queries (REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE)
+
+This SQL file contains queries for deleting RedCap administrative/usage
+information that is not needed for a database transfer.
+
+This SQL file SHOULD be run when creating a "clean" database for transferring
+a set of records.
+
+This SQL file SHOULD NOT be run against a database where the usage history
+should be preserved.
+
+
+
+ 
 ## Helper Scripts
 
 The following scripts are designed to perform a specific function, unrelated

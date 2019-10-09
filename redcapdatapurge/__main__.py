@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+import sys
+
 load_dotenv()
 
 
@@ -244,7 +246,40 @@ def purge_sql_unattached_tables_with_user_name(user_names_to_keep):
     return sql_statements
 
 
-def main():
+def redcap_admin_purge_sql():
+    """
+    Returns SQL statements remove all entries in tables that hold
+    RedCap application configuration/usage history information that
+    is not needed in some migrations.
+    """
+    sql_statements = []
+
+    tables = [
+        'redcap_crons_history',
+        'redcap_dashboard_ip_location_cache',
+        'redcap_history_size',
+        'redcap_ip_cache',
+        'redcap_log_view',
+        'redcap_log_view_requests',
+        'redcap_page_hits',
+        'redcap_sessions',
+        'redcap_surveys_emails_send_rate'
+    ]
+
+    for table in tables:
+        statement = f"DELETE FROM {table};"
+        sql_statements.append(statement)
+
+    return sql_statements
+
+
+def main(project_ids_to_keep, user_names_to_keep):
+    """
+    Generates the files used for cleaning up a RedCap database prior to
+    transfer.
+    :param project_ids_to_keep: a list of project_ids that should be preserved
+    :param user_names_to_keep: a list of user names that should be preserved
+    """
     required_env_vars = ["DB_URL", "CLEANUP_OUTPUT_FILE",
                          "PURGE_QUERIES_OUTPUT_FILE",
                          "REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE"]
@@ -253,6 +288,7 @@ def main():
             print(f"Required environment variable '{var}' is missing.")
             exit(1)
 
+    # Cleanup SQL file
     cleanup_sql_statements = []
     cleanup_sql_statements.extend(cleanup_sql_for_delete_orphaned_projects_ids())
     cleanup_sql_statements.extend(cleanup_sql_for_delete_null_projects_ids())
@@ -263,38 +299,55 @@ def main():
     with open(cleanup_file, 'w') as fp:
         fp.write('\n'.join(cleanup_sql_statements))
 
-    usernames_to_keep = [
-        'dyarnell', 'dmilton', 'sbobbin', 'jbueno', 'balbert', 'rwashing',
-        'sy344', 'dmilton2', 'adenaiye', 'vdemaio', 'imoleayof19', 'amarafox',
-        'tgold', 'stefanos', 'Ali98', 'lynch17', 'magidya', 'mmistret',
-        'tomiokanlawon', 'abhipat', 'micah38', 'melaynap', 'shirarubin37',
-        'jsolow', 'cstipa', 'msuh1145', 'sswanzy04', 'Lwakefie', 'jmarron',
-        'fhong', 'gmagno', 'rezeugoh', 'dmilton_api', 'jgerman', 'calilung',
-        'dsteelma', 'durden']
-
-    project_ids_to_keep = [
-        35, 36, 38, 39, 40, 41, 42, 47, 48, 49, 50, 52, 54, 55, 58, 60, 61, 63,
-        64, 65, 66, 67, 68, 73, 82, 89, 90, 92, 94, 99, 100, 101, 110, 117, 118,
-        119, 120, 123, 124, 179, 180, 311
-    ]
-
+    # Purge SQL file
     purge_sql_statements = []
     purge_sql_statements.append('-- purge_sql_for_redcap_projects')
     purge_sql_statements.extend(purge_sql_for_redcap_projects(project_ids_to_keep))
     purge_sql_statements.append('-- purge_sql_for_redcap_user_information')
-    purge_sql_statements.extend(purge_sql_for_redcap_user_information(usernames_to_keep))
+    purge_sql_statements.extend(purge_sql_for_redcap_user_information(user_names_to_keep))
     purge_sql_statements.append('-- purge_sql_unattached_tables_with_project_id')
     purge_sql_statements.extend(purge_sql_unattached_tables_with_project_id(project_ids_to_keep))
     purge_sql_statements.append('-- purge_sql_unattached_tables_with_user_name')
-    purge_sql_statements.extend(purge_sql_unattached_tables_with_user_name(usernames_to_keep))
+    purge_sql_statements.extend(purge_sql_unattached_tables_with_user_name(user_names_to_keep))
 
     purge_queries_file = os.getenv("PURGE_QUERIES_OUTPUT_FILE")
     with open(purge_queries_file, 'w') as fp:
         fp.write('\n'.join(purge_sql_statements))
 
+    # RedCap Admin Purge
+    redcap_admin_purge_sql_statements = []
+    redcap_admin_purge_sql_statements.append('-- redcap_admin_purge_sql')
+    redcap_admin_purge_sql_statements.extend(redcap_admin_purge_sql())
 
+    redcap_admin_purge_queries_file = os.getenv("REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE")
+    with open(redcap_admin_purge_queries_file, 'w') as fp:
+        fp.write('\n'.join(redcap_admin_purge_sql_statements))
+
+def file_to_list(filename):
+    lines = []
+    with open(filename, 'r') as fp:
+        line = fp.readline()
+        while line:
+            if line and len(line.strip()) > 0:
+                lines.append(line.strip())
+            line = fp.readline()
+    return lines
 
 
 if __name__ == '__main__':
-    main()
+    arguments = sys.argv
+
+    if len(arguments) < 2 or len(arguments) > 3:
+        print('Usage: ')
+        print('\tpython -m redcapdatapurge [project_ids_to_keep_file] [user_names_to_keep_file]')
+        print('where [project_ids_to_keep_file] is a list of project ids to keep (one per line), and')
+        print('where [user_names_to_keep_file] is a list of names to keep (one per line).')
+        sys.exit(1)
+
+    project_ids_to_keep_file = arguments[1]
+    user_names_to_keep_file = arguments[2]
+
+    project_ids_to_keep = file_to_list(project_ids_to_keep_file)
+    user_names_to_keep = file_to_list(user_names_to_keep_file)
+    main(project_ids_to_keep, user_names_to_keep)
 
