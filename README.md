@@ -11,7 +11,7 @@ specified projects.
 
 ### Prerequisites
 
-The following prerequisires are required for this application:
+The following prerequisites are required for this application:
 
 * Python 3.7
 * pip
@@ -407,6 +407,189 @@ suggests:
 ```
 
 **Note:** This command has not been tested.
+
+## Scenario: Creating Database for Transfer
+
+The following steps are provided as an example of how to create a "clean"
+RedCap database containing only information for a particular set of project ids
+and user names.
+
+1) Copy the "env_example" file to ".env" and fill out the parameters. For
+the following steps, the following parameters were used for the filenames:
+
+| Parameter | Value |
+|-----------|-------|
+|CLEANUP_OUTPUT_FILE|/tmp/cleanup.sql|
+|PURGE_QUERIES_OUTPUT_FILE|/tmp/purge_queries_output.sql|
+|REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE|/tmp/redcap_admin_purge_queries_output.sql|
+
+Be sure to also fill out the "DB_URL" parameter.
+
+2) Create a "project_ids_to_keep.txt" file containing only the project ids
+of the projects that should be transferred. See "example_project_ids_to_keep.txt"
+for an example. The project ids should be provided one per line.
+
+3) Create a "user_names_to_keep.txt" file containing only the user names
+that should be transferred. Be sure to include the "site-admin" user, as that
+is needed by some RedCap functionality. See "example_user_names_to_keep.txt"
+for an example.
+
+4) Run the "redcapdatapurge" command:
+
+```
+> python -m redcapdatapurge project_ids_to_keep.txt user_names_to_keep.txt
+```
+
+The following files are produced:
+
+* /tmp/cleanup.sql
+* /tmp/purge_queries_output.sql
+* /tmp/redcap_admin_purge_queries_output.sql
+
+5) Copy the files to the "/tmp" directory on the RedCap database server (in the
+following examples the "redcapdevdb.lib.umd.edu" server is used). Replace
+"jsmith" with your username:
+
+```
+> scp /tmp/cleanup.sql jsmith@redcapdevdb.lib.umd.edu:/tmp
+> scp /tmp/purge_queries_output.sql jsmith@redcapdevdb.lib.umd.edu:/tmp
+> scp /tmp/redcap_admin_purge_queries_output.sql jsmith@redcapdevdb.lib.umd.edu:/tmp
+```
+
+6) Log in to the RedCap database server.
+
+7) On the RedCap database server, switch to the "db" service account.
+
+8) As the "db" service account user, run the following commands:
+
+```
+> mysql -u redcap -p redcap < /tmp/cleanup.sql
+> mysql -u redcap -p redcap < /tmp/purge_queries_output.sql
+> mysql -u redcap -p redcap < /tmp/redcap_admin_purge_queries_output.sql
+```
+
+You will be prompted for the password after each command.
+
+9) At this point take a MySQL database dump of the database. This will be the
+be the "database" portion of the transfer.
+
+10) On the workstation, run the following command to create a "file_list.txt"
+file of all the files to be transferred from the "edocs" directory on the
+RedCap Server:
+
+```
+> python retrieve_files_list.py > file_list.txt
+```
+
+11) Copy the "file_list.txt" file to the "/tmp" directory of the RedCap server
+(in the following examples the "redcapdev.lib.umd.edu" server is used). Replace
+"jsmith" with your username:
+
+**Note:** Unless you are certain all the files were transferred from the
+producton server to the dev server, it is probably better to transfer this
+file to the production server, and use the production server in the following
+steps.
+
+```
+> scp file_list.txt jsmith@redcapdev.lib.umd.edu:/tmp
+```
+
+12) Log in to the RedCap server.
+
+13) On the RedCap database server, switch to the "db" service account.
+
+14) As the "db" service account user, run the following commands to create
+a "tar" archive of all the files in the "/tmp/file_list.txt" file:
+
+```
+> cd /apps/redcap/edocs
+> tar -cvf allfiles.tar -T file_list.txt
+```
+
+**Note:** There is no guarantee that all the files will actually be present,
+so the tar command may report some missing files (and exit with 
+"Exiting with failure status due to previous errors").
+
+The "allfiles.tar" constitutes the "files" portion of the transfer.
+
+15) The "database" and "files" comprise all the information that should be
+needed for the transfer.
+
+## Scenario: Purging Projects and Usernames
+
+The following steps are provided as an example of how to remove a set of project
+ids and user names from an existing RedCap database.
+
+1) Copy the "env_example" file to ".env" and fill out the parameters. For
+the following steps, the following parameters were used for the filenames:
+
+| Parameter | Value |
+|-----------|-------|
+|CLEANUP_OUTPUT_FILE|/tmp/cleanup.sql|
+|PURGE_QUERIES_OUTPUT_FILE|/tmp/purge_queries_output.sql|
+|REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE|/tmp/redcap_admin_purge_queries_output.sql|
+
+Be sure to also fill out the "DB_URL" parameter.
+
+2) Create a "project_ids_to_keep.txt" file containing the project ids
+of the projects that should be kept. See "example_project_ids_to_keep.txt"
+for an example. The project ids should be provided one per line.
+
+3) Create a "user_names_to_keep.txt" file containing the user names
+that should be kept. Be sure to include the "site-admin" user, as that
+is needed by some RedCap functionality. See "example_user_names_to_keep.txt"
+for an example.
+
+4) Run the "redcapdatapurge" command:
+
+```
+> python -m redcapdatapurge project_ids_to_keep.txt user_names_to_keep.txt
+```
+
+The following files are produced:
+
+* /tmp/cleanup.sql
+* /tmp/purge_queries_output.sql
+* /tmp/redcap_admin_purge_queries_output.sql
+
+5) Copy the files to the "/tmp" directory on the RedCap database server (in the
+following examples the "redcapdevdb.lib.umd.edu" server is used). Replace
+"jsmith" with your username:
+
+**Note:** We do _not_ want to purge the RedCap admin tables, so the
+"/tmp/redcap_admin_purge_queries_output.sql" should _not_ be transferred.
+
+```
+> scp /tmp/cleanup.sql jsmith@redcapdevdb.lib.umd.edu:/tmp
+> scp /tmp/purge_queries_output.sql jsmith@redcapdevdb.lib.umd.edu:/tmp
+```
+
+6) Log in to the RedCap database server.
+
+7) On the RedCap database server, switch to the "db" service account.
+
+8) As the "db" service account user, run the following commands:
+
+**Note:** In the following the "cleanup.sql" script is optional, as it only
+removes orphaned rows from tables. If you are feeling conservative, it is
+okay not to run it. 
+
+```
+> mysql -u redcap -p redcap < /tmp/cleanup.sql
+> mysql -u redcap -p redcap < /tmp/purge_queries_output.sql
+```
+
+You will be prompted for the password after each command.
+
+9) If you want to clean up the files in the "/apps/redcap/edocs" on the
+RedCap server, probably the easiest thing to do is to keep the
+"file_list.txt" file from the "Creating Database for Transfer" scenario and
+use it to delete all the files in the list from the "/apps/redcap/edocs", using
+the following command (WARNING: this command has not been tested):
+
+```
+> xargs rm < file_list.txt
+```
 
 ## License
 
