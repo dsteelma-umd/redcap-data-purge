@@ -342,9 +342,6 @@ a set of records.
 This SQL file SHOULD NOT be run against a database where the usage history
 should be preserved.
 
-
-
- 
 ## Helper Scripts
 
 The following scripts are designed to perform a specific function, unrelated
@@ -367,9 +364,55 @@ Verifies that the tables that are expected to be empty are actually empty.
 > python verify_empty_tables.py
 ```
 
+### retrieve_files_list.py
+
+Prints (to standard out) a list of all the unique files in the
+"redcap_edocs_metadata" and "redcap_sendit_docs" tables that may be in
+the "edocs" directory of the RedCap server.
+
+```
+> python retrieve_files_list.py
+```
+
+To send the output to a file (such as "file_list.txt"), simply use a Unix pipe:
+
+```
+> python retrieve_files_list.py > file_list.txt
+```
+
+This list can be used with the Unix "tar" or "rm" commands to store or remove
+all the files.
+
+For example, to create an "allfiles.tar" tar archive containing all the files
+in the list:
+ 
+1) Copy the file list to the "/apps/redcap/edocs" directory of the RedCap
+server.
+
+2) Run the following command:
+
+```
+> tar -cvf allfiles.tar -T file_list.txt
+```
+
+**Note:** There is no guarantee that all the files will actually be present,
+so the tar command may report some missing files (and exit with 
+"Exiting with failure status due to previous errors").
+
+For deleting all the files listed in the file, [Stack Overflow](https://stackoverflow.com/a/5142498)
+suggests:
+
+```
+> xargs rm < file_list.txt
+```
+
+**Note:** This command has not been tested.
+
 ## License
 
 See the [LICENSE](LICENSE.md) file for license rights and limitations (Apache 2.0).
 
 ----
 [clone_redcap_db]: https://confluence.umd.edu/display/ULDW/Clone+REDCap+database
+
+[]: https://stackoverflow.com/a/5142498
