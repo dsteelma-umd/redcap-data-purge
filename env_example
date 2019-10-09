@@ -11,9 +11,9 @@ DB_URL=
 CLEANUP_OUTPUT_FILE=
 
 # The fully-qualified path to the purge queries output file, i.e.
-#    /tmp/purge_queries_output.txt
+#    /tmp/purge_queries_output.sql
 PURGE_QUERIES_OUTPUT_FILE=
 
 # The fully-qualified path for the RedCap admin purge queries output file, i.e.
-#    /tmp/redcap_admin_purge_queries_output.txt
+#    /tmp/redcap_admin_purge_queries_output.sql
 REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE=
