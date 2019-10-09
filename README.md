@@ -272,6 +272,35 @@ do not contain a "project_id" or "username" field:
 * redcap_surveys_emails_send_rate
 * redcap_validation_types
 
+## Usage
+
+To generate the files to use in purging the database:
+
+```
+> python -m redcapdatapurge
+```
+
+## Helper Scripts
+
+The following scripts are designed to perform a specific function, unrelated
+to the actual purge SQL file generation:
+
+### total_rows_counts.py
+
+Prints a list of all the tables in the database, with their associated row
+counts.
+
+```
+> python total_row_counts.py
+```
+
+### verify_empty_tables
+
+Verifies that the tables that are expected to be empty are actually empty.
+
+```
+> python verify_empty_tables.py
+```
 
 ## License
 
