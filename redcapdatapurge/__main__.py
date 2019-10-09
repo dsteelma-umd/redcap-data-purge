@@ -33,45 +33,6 @@ def cleanup_sql_for_delete_orphaned_projects_ids():
     return sql_statements
 
 
-def cleanup_sql_for_delete_null_projects_ids():
-    """
-    :return: a list of SQL statements for cleaning up records that have
-    null project ids.
-    """
-    sql_statements = []
-    tables_with_null_project_ids = [
-        'redcap_external_module_settings'
-    ]
-
-    for table in tables_with_null_project_ids:
-        statement = f"DELETE FROM {table} WHERE project_id IS NULL;"
-        sql_statements.append(statement)
-
-    return sql_statements
-
-
-def cleanup_sql_for_delete_null_ui_ids():
-    """
-    :return: a list of SQL statements for cleaning up records that have
-    null user ids.
-    """
-
-    sql_statements = []
-    tables_with_null_ui_ids = [
-        {'table': 'redcap_messages', 'field': 'author_user_id'},
-        {'table': 'redcap_messages_recipients', 'field': 'recipient_user_id'},
-        {'table': 'redcap_surveys_themes', 'field': 'ui_id'},
-    ]
-
-    for t in tables_with_null_ui_ids:
-        table = t['table']
-        field = t['field']
-        statement = f"DELETE FROM {table} WHERE {field} IS NULL;"
-        sql_statements.append(statement)
-
-    return sql_statements
-
-
 def cleanup_sql_for_other_orphans():
     """
     :return: a list of SQL statements for cleaning up records that have
@@ -342,8 +303,6 @@ def main(project_ids_to_keep, user_names_to_keep):
     # Cleanup SQL file
     cleanup_sql_statements = []
     cleanup_sql_statements.extend(cleanup_sql_for_delete_orphaned_projects_ids())
-    cleanup_sql_statements.extend(cleanup_sql_for_delete_null_projects_ids())
-    cleanup_sql_statements.extend(cleanup_sql_for_delete_null_ui_ids())
     cleanup_sql_statements.extend(cleanup_sql_for_other_orphans())
 
     cleanup_file = os.getenv("CLEANUP_OUTPUT_FILE")
