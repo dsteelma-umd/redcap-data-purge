@@ -85,8 +85,192 @@ DB_URL=mysql://redcap:<DB_PASSWORD>@127.0.0.1:3306/redcap
 where \<DB_URL> is the database password. The database password can be found
 in the "Identities" document on the "SSDR" Google Team Drive.
 
+## RedCap Database Purge
+
+There are 119 tables in the "redcap" database. For purposes of the database
+purge, these tables can be divided into the following categories:
+
+* The "redcap_projects" table and its child tables
+* The "redcap_user_information" table and its child tables
+* Unattached tables that contain a "project_id" field
+* Unattached tables that contain a "username" field
+* Tables with no records
+* Tables used for RedCap application configuration
+
+A "child" table is a table that contains a foreign key with a "CASCADE DELETE"
+relationship to the parent table. This means that a deletion of a row in
+the parent table will automatically cause the deletion of related rows in
+the child table. There can be multiple levels of cascade deletion.
+
+For the purposes of this application, an "unattached" table is a table that does
+not have a foreign key relationship with either the "redcap_projects" or
+"redcap_user_information_table", but do contain either a "project_id" or
+"username" field. This tables are considered "unattached" because deleting
+a record in the "redcap_projects" or "redcap_user_information" tables will
+not have any affect on these tables. Therefore separate SQL statements are
+needed to handle purging for these tables.
+
+### "redcap_projects" table and its child tables
+
+The following is the list of the "redcap_projects" table and its descendent
+tables. All of these tables will be affected by the deletion of a row in
+"redcap_projects" table:
+
+* redcap_projects
+    * redcap_actions
+    * redcap_data_access_groups
+    * redcap_data_dictionaries
+    * redcap_data_quality_rules
+    * redcap_data_quality_status
+        * redcap_data_quality_resolutions
+    * redcap_ddp_log_view
+        * redcap_ddp_log_view_data
+    * redcap_ddp_mapping
+    * redcap_ddp_preview_fields
+    * redcap_ddp_records
+        * redcap_ddp_records_data
+    * redcap_docs
+        * redcap_docs_to_edocs
+    * redcap_ehr_user_projects
+    * redcap_esignatures
+    * redcap_events_arms
+        * redcap_events_metadata
+            * redcap_events_forms
+            * redcap_events_repeat
+    * redcap_events_calendar
+    * redcap_external_links
+        * redcap_external_links_dags
+        * redcap_external_links_users
+    * redcap_external_links_exclude_projects
+    * redcap_external_module_settings
+    * redcap_folders_projects
+    * redcap_library_map
+    * redcap_locking_data
+    * redcap_locking_labels
+    * redcap_metadata
+    * redcap_metadata_archive
+    * redcap_metadata_prod_revisions
+    * redcap_metadata_temp
+    * redcap_mobile_app_devices
+    * redcap_mobile_app_log
+    * redcap_new_record_cache
+    * redcap_project_checklist
+    * redcap_projects_templates
+    * redcap_randomization
+        * redcap_randomization_allocation
+    * redcap_record_counts
+    * redcap_record_dashboards
+    * redcap_reports
+        * redcap_reports_access_dags
+        * redcap_reports_access_roles
+        * redcap_reports_access_users
+        * redcap_reports_fields
+        * redcap_reports_filter_dags
+        * redcap_reports_filter_events
+    * redcap_surveys
+        * redcap_surveys_emails
+            * redcap_surveys_emails_recipients
+                * redcap_surveys_scheduler_queue
+        * redcap_surveys_participants
+            * redcap_surveys_response
+                * redcap_surveys_login
+                * redcap_surveys_response_users
+            * redcap_surveys_short_codes
+        * redcap_surveys_pdf_archive
+        * redcap_surveys_queue
+        * redcap_surveys_scheduler
+    * redcap_surveys_erase_twilio_log
+    * redcap_surveys_phone_codes
+    * redcap_surveys_queue_hashes
+    * redcap_surveys_response_values
+    * redcap_user_rights
+    * redcap_user_roles
+    * redcap_web_service_cache
+
+### "redcap_user_information" table and its child tables
+
+The following is the list of the "redcap_user_information" table and its descendent
+tables. All of these tables will be affected by the deletion of a row in
+"redcap_user_information" table:
+
+* redcap_user_information
+    * redcap_actions
+    * redcap_ehr_access_tokens
+    * redcap_ehr_user_map
+    * redcap_ehr_user_projects
+    * redcap_folder_projects
+    * redcap_folders
+    * redcap_folders_projects
+    * redcap_messages
+    * redcap_messages_recipients
+    * redcap_messages_status
+    * redcap_surveys_themes
+    * redcap_todo_list
+    * redcap_two_factor_response
+
+### Unattached tables that contain a "project_id" field
+
+The following tables are not associated with the "redcap_projects" table via
+a foreign key, but contain a "project_id" field, so must be handled
+individually:
+
+* redcap_data
+* redcap_edocs_metadata
+    * edcap_mobile_app_files
+* redcap_log_event 
+
+### Unattached tables that contain a "username" field
+
+The following tables are not associated with the "redcap_user_information" table
+via a foreign key, but contain a "username" field, so must be handled
+individually:
+
+* redcap_auth
+* redcap_auth_history
+* redcap_sendit_docs
+    * redcap_sendit_recipients (Transitive through "document_id" on "redcap_sendit_docs)
 
 
+### Tables with no records
+
+The following tables have no records, so do not need to be purged:
+
+* redcap_external_modules_log
+* redcap_external_modules_log_parameters
+* redcap_instrument_zip
+* redcap_instrument_zip_authors
+* redcap_ip_banned
+* redcap_projects_external
+* redcap_pub_articles
+* redcap_pub_authors
+* redcap_pub_matches
+* redcap_pub_mesh_terms
+* redcap_user_whitelist
+
+### Tables used for RedCap application configuration
+
+The following tables are used by RedCap for application configuration. They
+do not contain a "project_id" or "username" field:
+
+* redcap_auth_questions
+* redcap_config
+* redcap_crons
+* redcap_crons_history
+* redcap_dashboard_ip_location_cache
+* redcap_external_modules
+* redcap_external_modules_downloads
+* redcap_history_size
+* redcap_history_version
+* redcap_instrument_zip_origins
+* redcap_ip_cache
+* redcap_log_view
+* redcap_log_view_requests
+* redcap_messages_threads
+* redcap_page_hits
+* redcap_pub_sources
+* redcap_sessions
+* redcap_surveys_emails_send_rate
+* redcap_validation_types
 
 
 ## License
