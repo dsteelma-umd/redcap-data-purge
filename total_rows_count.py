@@ -5,8 +5,7 @@ from redcapdatapurge.utils import calculate_total_rows_count
 
 load_dotenv()
 
-required_env_vars = ["DB_URL", "SUMMARY_OUTPUT_FILE",
-                     "PURGE_QUERIES_OUTPUT_FILE", "RELATED_ITEM_IDS_OUTPUT_FILE"]
+required_env_vars = ["DB_URL"]
 for var in required_env_vars:
     if not os.getenv(var):
         print(f"Required environment variable '{var}' is missing.")

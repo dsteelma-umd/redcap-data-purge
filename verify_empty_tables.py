@@ -41,6 +41,12 @@ def verify_empty_tables(table_row_count):
     return True
 
 
+required_env_vars = ["DB_URL"]
+for var in required_env_vars:
+    if not os.getenv(var):
+        print(f"Required environment variable '{var}' is missing.")
+        exit(1)
+
 db_url = os.getenv("DB_URL")
 db = dataset.connect(db_url)
 
