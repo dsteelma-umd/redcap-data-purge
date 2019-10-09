@@ -48,7 +48,7 @@ The following prerequisites are required for this application:
    environment information:
 
     ```
-    cp env_example .env
+    > cp env_example .env
     ```
 
 ## Development Database
