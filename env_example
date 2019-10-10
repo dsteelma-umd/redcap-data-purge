@@ -1,0 +1,19 @@
+# Example .env file
+# Make a copy of this file named ".env" and fill out the properties
+# Note: The .env file should _not_ be checked in to Git!
+
+# The database connection URL, i.e.
+#    mysql://redcap:<PASSWORD>@127.0.0.1/redcap
+DB_URL=
+
+# The fully-qualified path to the cleanup output file, i.e.
+#    /tmp/cleanup.sql
+CLEANUP_OUTPUT_FILE=
+
+# The fully-qualified path to the purge queries output file, i.e.
+#    /tmp/purge_queries_output.sql
+PURGE_QUERIES_OUTPUT_FILE=
+
+# The fully-qualified path for the RedCap admin purge queries output file, i.e.
+#    /tmp/redcap_admin_purge_queries_output.sql
+REDCAP_ADMIN_PURGE_QUERIES_OUTPUT_FILE=
