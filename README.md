@@ -504,9 +504,9 @@ steps.
 
 13) Log in to the RedCap server.
 
-14) On the RedCap database server, switch to the "db" service account.
+14) On the RedCap server, switch to the "redcap" service account.
 
-15) As the "db" service account user, run the following commands to create
+15) As the "redcap" service account user, run the following commands to create
 a "tar" archive of all the files in the "/tmp/file_list.txt" file:
 
 ```
